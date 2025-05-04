@@ -1,46 +1,122 @@
-import axios from "axios";
-import React, { useEffect, useState } from "react";
+"use client"
+
+import { useState, useEffect } from "react"
+import { Link } from "react-router-dom"
 
 function Home() {
-  const [form, setForm] = useState({ name: "", owners: "" });
-  const [cars, setCars] = useState([]);
-
-  const fetchCars = async () => {
-    const res = await axios.get("http://localhost:5000/api/cars/all");
-    setCars(res.data);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const car = { ...form, owners: form.owners.split(",").map(o => o.trim()) };
-    await axios.post("http://localhost:5000/api/cars/add", car);
-    fetchCars();
-  };
+  const [summaryData, setSummaryData] = useState([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetchCars();
-  }, []);
+    // Simulate fetching data from your API
+    // In a real app, you would use fetch or axios to get data from your backend
+    setTimeout(() => {
+      const mockData = [
+        {
+          carName: "Tesla Model 3",
+          totalBookings: 12,
+          totalDistance: 450,
+          totalExpenses: 320,
+          owners: [
+            { name: "John Doe", contribution: 40 },
+            { name: "Jane Smith", contribution: 60 },
+          ],
+        },
+        {
+          carName: "Toyota Prius",
+          totalBookings: 8,
+          totalDistance: 320,
+          totalExpenses: 180,
+          owners: [
+            { name: "Mike Johnson", contribution: 30 },
+            { name: "Sarah Williams", contribution: 30 },
+            { name: "Robert Brown", contribution: 40 },
+          ],
+        },
+      ]
+      setSummaryData(mockData)
+      setLoading(false)
+    }, 1000)
+  }, [])
+
+  // Calculate totals
+  const totalCars = summaryData.length
+  const totalBookings = summaryData.reduce((sum, car) => sum + car.totalBookings, 0)
+  const totalExpenses = summaryData.reduce((sum, car) => sum + car.totalExpenses, 0)
+  const totalDistance = summaryData.reduce((sum, car) => sum + car.totalDistance, 0)
+
+  if (loading) {
+    return <div className="text-center mt-4">Loading dashboard data...</div>
+  }
 
   return (
     <div>
-      <h1>Welcome to CarHive</h1>
-      <p>Manage your shared car seamlessly with bookings, expenses, and reports.</p>
+      <h1 className="text-center mb-4">Car Sharing Dashboard</h1>
 
-      <h2>Add a Car (Multi-Owner)</h2>
-      <form onSubmit={handleSubmit}>
-        <input type="text" placeholder="Car Name" onChange={(e) => setForm({ ...form, name: e.target.value })} required />
-        <input type="text" placeholder="Owners (comma-separated)" onChange={(e) => setForm({ ...form, owners: e.target.value })} required />
-        <button type="submit">Add Car</button>
-      </form>
+      <div className="stats-container">
+        <div className="stat-card">
+          <div className="stat-value">{totalCars}</div>
+          <div className="stat-label">Total Cars</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-value">{totalBookings}</div>
+          <div className="stat-label">Total Bookings</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-value">${totalExpenses}</div>
+          <div className="stat-label">Total Expenses</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-value">{totalDistance} km</div>
+          <div className="stat-label">Total Distance</div>
+        </div>
+      </div>
 
-      <h3>All Cars</h3>
-      <ul>
-        {cars.map((car, idx) => (
-          <li key={idx}>{car.name} - Owners: {car.owners.join(", ")}</li>
-        ))}
-      </ul>
+      <h2>Car Summary</h2>
+      <div className="table-container">
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Car</th>
+              <th>Owners</th>
+              <th>Bookings</th>
+              <th>Distance</th>
+              <th>Expenses</th>
+            </tr>
+          </thead>
+          <tbody>
+            {summaryData.map((car, index) => (
+              <tr key={index}>
+                <td>{car.carName}</td>
+                <td>
+                  {car.owners.map((owner, i) => (
+                    <div key={i}>
+                      {owner.name} <span className="badge badge-primary">{owner.contribution}%</span>
+                    </div>
+                  ))}
+                </td>
+                <td>{car.totalBookings}</td>
+                <td>{car.totalDistance} km</td>
+                <td>${car.totalExpenses}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="d-flex justify-between mt-4">
+        <Link to="/cars" className="btn btn-primary">
+          Manage Cars
+        </Link>
+        <Link to="/booking" className="btn btn-success">
+          New Booking
+        </Link>
+        <Link to="/expenses" className="btn btn-danger">
+          Record Expense
+        </Link>
+      </div>
     </div>
-  );
+  )
 }
 
-export default Home;
+export default Home
